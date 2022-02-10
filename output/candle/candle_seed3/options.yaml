@@ -1,0 +1,72 @@
+H: 200
+W: 150
+arch:
+    layers:
+    - null
+    - 256
+    - 256
+    - 256
+    - 256
+    - 3
+    posenc:
+        L_2D: 8
+    skip: []
+barf_c2f:
+- 0
+- 0.4
+batch_size: 5
+cpu: true
+data:
+    augment: {}
+    center_crop: null
+    dataset: null
+    image_fname: data/candle.jpg
+    image_size:
+    - 200
+    - 150
+    num_workers: 8
+    patch_crop:
+    - 200
+    - 150
+    preload: false
+    root: null
+    train_sub: null
+    val_on_test: false
+    val_sub: null
+device: cpu
+freq:
+    ckpt: 50
+    scalar: 20
+    val: 20
+    vis: 100
+gpu: 0
+group: candle
+load: null
+loss_weight:
+    render: 0
+max_epoch: 1000
+max_iter: 100
+model: planar_mult
+name: candle_seed3
+optim:
+    algo: Adam
+    lr: 0.001
+    lr_end: null
+    lr_warp: 0.001
+    sched: {}
+output_path: output/candle/candle_seed3
+output_root: output
+resume: false
+seed: 3
+tb:
+    num_images:
+    - 4
+    - 8
+visdom: null
+warp:
+    dof: 8
+    fix_first: true
+    noise_h: 0.1
+    noise_t: 0.2
+    type: homography
+yaml: planar
