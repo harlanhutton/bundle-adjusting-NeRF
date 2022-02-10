@@ -208,6 +208,7 @@ class NeuralImageFunction(torch.nn.Module):
             if li in opt.arch.skip: k_in += input_2D_dim
             linear = torch.nn.Linear(k_in,k_out)
             if opt.barf_c2f and li==0:
+                print("TRUE")
                 # rescale first layer init (distribution was for pos.enc. but only xy is first used)
                 scale = np.sqrt(input_2D_dim/2.)
                 linear.weight.data *= scale

@@ -6,7 +6,7 @@ arch:                                                       # architectural opti
     posenc:                                                 # positional encoding
         L_2D: 8                                             # number of bases (3D point)
 
-barf_c2f:                                                   # coarse-to-fine scheduling on positional encoding
+barf_c2f: [0,0.4]                                           # coarse-to-fine scheduling on positional encoding
 
 data:                                                       # data options
     image_fname: data/cat.jpg                               # path to image file
