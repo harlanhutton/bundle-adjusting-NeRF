@@ -24,7 +24,7 @@ class Model(base.Model):
         opt.H_crop,opt.W_crop = opt.data.patch_crop
 
     def load_dataset(self,opt,eval_split=None):
-        print(opt.batch_size)
+        #print(opt.batch_size)
         image_raw = PIL.Image.open('data/candle1.jpg')
         self.image_raw = torchvision_F.to_tensor(image_raw).to(opt.device)
         image_raw1 = PIL.Image.open('data/candle1.jpg')
@@ -37,11 +37,11 @@ class Model(base.Model):
         image_raw4 = torchvision_F.to_tensor(image_raw4).to(opt.device)
         image_raw5 = PIL.Image.open('data/candle5.jpg')
         image_raw5 = torchvision_F.to_tensor(image_raw5).to(opt.device)
-        #image_raw6 = PIL.Image.open('data/candle6.jpg')
-        #image_raw6 = torchvision_F.to_tensor(image_raw6).to(opt.device)
+        image_raw6 = PIL.Image.open('data/candle6.jpg')
+        image_raw6 = torchvision_F.to_tensor(image_raw6).to(opt.device)
         #image_raw = PIL.Image.open(opt.data.image_fname)
         #self.image_raw = torchvision_F.to_tensor(image_raw).to(opt.device)
-        self.image_total = torch.stack((image_raw1,image_raw2,image_raw3,image_raw4,image_raw5))
+        self.image_total = torch.stack((image_raw1,image_raw2,image_raw3,image_raw4,image_raw5,image_raw6))
 
     def build_networks(self,opt):
         super().build_networks(opt)
@@ -65,7 +65,7 @@ class Model(base.Model):
     def setup_visualizer(self,opt):
         super().setup_visualizer(opt)
         # set colors for visualization
-        box_colors = ["#ff0000","#40afff","#9314ff","#ffd700","#00ff00"]
+        box_colors = ["#ff0000","#40afff","#9314ff","#ffd700","#00ff00","#00ff00"]
         box_colors = list(map(util.colorcode_to_number,box_colors))
         self.box_colors = np.array(box_colors).astype(int)
         assert(len(self.box_colors)==opt.batch_size)
@@ -85,20 +85,25 @@ class Model(base.Model):
         # self.warp_pert,var.image_pert = self.generate_warp_perturbation(opt)
 
         warp_pert_all = torch.zeros(opt.batch_size,opt.warp.dof,device=opt.device)
-        trans_pert = [(0,0)]+[(x,y) for x in (-opt.warp.noise_t,opt.warp.noise_t)
-                                    for y in (-opt.warp.noise_t,opt.warp.noise_t)]
-        def create_random_perturbation():
-            warp_pert = torch.randn(opt.warp.dof,device=opt.device)*opt.warp.noise_h
-            warp_pert[0] += trans_pert[i][0]
-            warp_pert[1] += trans_pert[i][1]
-            return warp_pert
-        for i in range(opt.batch_size):
-            warp_pert = create_random_perturbation()
-            while not warp.check_corners_in_range(opt,warp_pert[None]):
-                warp_pert = create_random_perturbation()
-            warp_pert_all[i] = warp_pert
-        if opt.warp.fix_first:
-            warp_pert_all[0] = 0
+        # print('warp_pert_all shape: ', warp_pert_all.shape)
+        # print('warp.noise_t shape" ', opt.warp.noise_t)
+        # print([(0,0)]+[(x,y) for x in (-opt.warp.noise_t,opt.warp.noise_t)
+        #                             for y in (-opt.warp.noise_t,opt.warp.noise_t)])
+        # trans_pert = [(0,0)]+[(x,y) for x in (-opt.warp.noise_t,opt.warp.noise_t)
+        #                             for y in (-opt.warp.noise_t,opt.warp.noise_t)]
+        # print('trans_pert shape: ', len(trans_pert))
+        # def create_random_perturbation():
+        #     warp_pert = torch.randn(opt.warp.dof,device=opt.device)*opt.warp.noise_h
+        #     warp_pert[0] += trans_pert[i][0]
+        #     warp_pert[1] += trans_pert[i][1]
+        #     return warp_pert
+        # for i in range(opt.batch_size):
+        #     warp_pert = create_random_perturbation()
+        #     while not warp.check_corners_in_range(opt,warp_pert[None]):
+        #         warp_pert = create_random_perturbation()
+        #     warp_pert_all[i] = warp_pert
+        # if opt.warp.fix_first:
+        #     warp_pert_all[0] = 0
         self.warp_pert = warp_pert_all
 
         var.image_pert = self.image_total
@@ -227,6 +232,7 @@ class Graph(base.Graph):
     def compute_loss(self,opt,var,mode=None):
         loss = edict()
         if opt.loss_weight.render is not None:
+            #print(var.image_pert.shape)
             image_pert = var.image_pert.view(opt.batch_size,3,opt.H_crop*opt.W_crop).permute(0,2,1)
             loss.render = self.MSE_loss(var.rgb_warped,image_pert)
         return loss
@@ -248,7 +254,7 @@ class NeuralImageFunction(torch.nn.Module):
             if li in opt.arch.skip: k_in += input_2D_dim
             linear = torch.nn.Linear(k_in,k_out)
             if opt.barf_c2f and li==0:
-                print("TRUE")
+                #print("TRUE")
                 # rescale first layer init (distribution was for pos.enc. but only xy is first used)
                 scale = np.sqrt(input_2D_dim/2.)
                 linear.weight.data *= scale
