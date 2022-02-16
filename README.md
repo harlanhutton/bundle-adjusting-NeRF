@@ -1,3 +1,10 @@
+### IMAGE SIZES for NeRF Team
+
+candle: [200, 150] 
+cat: [180, 180]
+
+To run on own data: change image size and patch crop in planar.yaml to your own image sizes. Change batch size to your own batch size. Edit file names planar_mult.py in load_dataset. In setup_visualizer, make sure there are enough colors to match your batch size. 
+
 ## BARF :vomiting_face:: Bundle-Adjusting Neural Radiance Fields
 [Chen-Hsuan Lin](https://chenhsuanlin.bitbucket.io/),
 [Wei-Chiu Ma](http://people.csail.mit.edu/weichium/),
