@@ -20,6 +20,7 @@ dependencies:
   - pyyaml
   - pip
   - gdown
+  - setuptools==59.5.0
   - pip:
     - lpips
     - pymcubes
