@@ -193,6 +193,7 @@ class Model(base.Model):
         self.tb.add_scalar("{0}/{1}".format(split,"PSNR"),psnr,step)
         # warp error
         warp_error = (self.graph.warp_param.weight-self.warp_pert).norm(dim=-1).mean()
+        print(warp_error)
         self.tb.add_scalar("{0}/{1}".format(split,"warp error"),warp_error,step)
 
     @torch.no_grad()
@@ -201,8 +202,11 @@ class Model(base.Model):
         frame_GT = self.visualize_patches(opt,self.warp_pert)
         frame = self.visualize_patches(opt,self.graph.warp_param.weight)
         frame2 = self.predict_entire_image(opt)
-        frame_cat = (torch.cat([frame,frame2],dim=1)*255).byte().permute(1,2,0).numpy()
-        imageio.imsave("{}/{}.png".format(self.vis_path,self.vis_it),frame_cat)
+        #frame_cat = (torch.cat([frame,frame2],dim=1)*255).byte().permute(1,2,0).numpy()
+        #print(frame_cat.shape)
+        frame_vis = (torch.Tensor(frame2*255)).byte().permute(1,2,0).numpy()
+        #imageio.imsave("{}/{}.png".format(self.vis_path,self.vis_it),frame_cat)
+        imageio.imsave("{}/{}.png".format(self.vis_path,self.vis_it),frame_vis)
         self.vis_it += 1
         # visualize in Tensorboard
         if opt.tb:
@@ -226,7 +230,9 @@ class Graph(base.Graph):
         xy_grid_warped = warp.warp_grid(opt,xy_grid,self.warp_param.weight)
         # render images
         var.rgb_warped = self.neural_image.forward(opt,xy_grid_warped) # [B,HW,3]
+        print(var.rgb_warped.shape)
         var.rgb_warped_map = var.rgb_warped.view(opt.batch_size,opt.H_crop,opt.W_crop,3).permute(0,3,1,2) # [B,3,H,W]
+        print(var.rgb_warped_map.shape)
         return var
 
     def compute_loss(self,opt,var,mode=None):
