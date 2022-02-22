@@ -9,9 +9,10 @@ arch:                                                       # architectural opti
 barf_c2f: [0,0.4]                                           # coarse-to-fine scheduling on positional encoding
 
 data:                                                       # data options
-    image_fname: data/candle.jpg                               # path to image file
-    image_size: [200,150]                                   # original image size
-    patch_crop: [200,150]                                  # crop size of image patches to align
+    image_fname: data/stars                                 # path to image file
+    image_folder: data/stars/                               
+    image_size: [200,200]                                   # original image size
+    patch_crop: [200,200]                                  # crop size of image patches to align
 
 warp:                                                       # image warping options
     type: homography                                        # type of warp function
@@ -28,7 +29,7 @@ optim:                                                      # optimization optio
     lr_warp: 1.e-3                                          # learning rate of warp parameters
 
 batch_size: 6                                             # batch size (set to number of patches to consider)
-max_iter: 100                                              # train to maximum number of iterations
+max_iter: 150                                              # train to maximum number of iterations
 
 visdom:                                                     # Visdom options (turned off)
 

@@ -9,6 +9,7 @@ from easydict import EasyDict as edict
 import PIL
 import PIL.Image,PIL.ImageDraw
 import imageio
+import os
 
 import util,util_vis
 from util import log,debug
@@ -25,23 +26,27 @@ class Model(base.Model):
 
     def load_dataset(self,opt,eval_split=None):
         #print(opt.batch_size)
-        image_raw = PIL.Image.open('data/candle1.jpg')
+
+        img_list = os.listdir(opt.data.image_folder)
+
+        opt.batch_size = len(img_list)
+
+        fname =str(opt.data.image_folder)+img_list[0]
+        print('orig raw fname ', fname)
+        image_raw = PIL.Image.open(fname)
         self.image_raw = torchvision_F.to_tensor(image_raw).to(opt.device)
-        image_raw1 = PIL.Image.open('data/candle1.jpg')
-        image_raw1 = torchvision_F.to_tensor(image_raw1).to(opt.device)
-        image_raw2 = PIL.Image.open('data/candle2.jpg')
-        image_raw2 = torchvision_F.to_tensor(image_raw2).to(opt.device)
-        image_raw3 = PIL.Image.open('data/candle3.jpg')
-        image_raw3 = torchvision_F.to_tensor(image_raw3).to(opt.device)
-        image_raw4 = PIL.Image.open('data/candle4.jpg')
-        image_raw4 = torchvision_F.to_tensor(image_raw4).to(opt.device)
-        image_raw5 = PIL.Image.open('data/candle5.jpg')
-        image_raw5 = torchvision_F.to_tensor(image_raw5).to(opt.device)
-        image_raw6 = PIL.Image.open('data/candle6.jpg')
-        image_raw6 = torchvision_F.to_tensor(image_raw6).to(opt.device)
-        #image_raw = PIL.Image.open(opt.data.image_fname)
-        #self.image_raw = torchvision_F.to_tensor(image_raw).to(opt.device)
-        self.image_total = torch.stack((image_raw1,image_raw2,image_raw3,image_raw4,image_raw5,image_raw6))
+
+        self.img_dict = {}
+
+        for x in range(len(img_list)):
+
+            fname =str(opt.data.image_folder)+img_list[x]
+            print(fname)
+            self.img_dict["img_raw{0}".format(x)] = PIL.Image.open(fname)
+            self.img_dict["img_raw{0}".format(x)] = torchvision_F.to_tensor(self.img_dict["img_raw{0}".format(x)]).to(opt.device)
+
+        self.image_total = torch.stack(list(self.img_dict.values()))
+        #print(self.image_total)
 
     def build_networks(self,opt):
         super().build_networks(opt)
@@ -65,7 +70,7 @@ class Model(base.Model):
     def setup_visualizer(self,opt):
         super().setup_visualizer(opt)
         # set colors for visualization
-        box_colors = ["#ff0000","#40afff","#9314ff","#ffd700","#00ff00","#00ff00"]
+        box_colors = ["#ff0000"] * opt.batch_size
         box_colors = list(map(util.colorcode_to_number,box_colors))
         self.box_colors = np.array(box_colors).astype(int)
         assert(len(self.box_colors)==opt.batch_size)
@@ -191,6 +196,7 @@ class Model(base.Model):
         # compute PSNR
         psnr = -10*loss.render.log10()
         self.tb.add_scalar("{0}/{1}".format(split,"PSNR"),psnr,step)
+        print('PSNR: ', psnr)
         # warp error
         warp_error = (self.graph.warp_param.weight-self.warp_pert).norm(dim=-1).mean()
         print(warp_error)
@@ -230,9 +236,9 @@ class Graph(base.Graph):
         xy_grid_warped = warp.warp_grid(opt,xy_grid,self.warp_param.weight)
         # render images
         var.rgb_warped = self.neural_image.forward(opt,xy_grid_warped) # [B,HW,3]
-        print(var.rgb_warped.shape)
+        #print(var.rgb_warped.shape)
         var.rgb_warped_map = var.rgb_warped.view(opt.batch_size,opt.H_crop,opt.W_crop,3).permute(0,3,1,2) # [B,3,H,W]
-        print(var.rgb_warped_map.shape)
+        #print(var.rgb_warped_map.shape)
         return var
 
     def compute_loss(self,opt,var,mode=None):
